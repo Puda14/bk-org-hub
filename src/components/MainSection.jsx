@@ -1,4 +1,11 @@
+import ClubLabItem from "./ClubLabItem";
+import ClubLabDetail from "./ClubLabDetail";
+import { clubs } from "../mock/data";
+import { useState } from "react";
+
 export default function MainSection() {
+  const [selectedClub, setSelectedClub] = useState(null);
+
   return (
     <div className="relative isolate px-6 pt-14 lg:px-8">
       <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
@@ -26,6 +33,22 @@ export default function MainSection() {
             </a>
           </div>
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto pb-24">
+        {selectedClub ? (
+          <ClubLabDetail club={selectedClub} onBack={() => setSelectedClub(null)} />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {clubs.map((club) => (
+              <ClubLabItem
+                key={club.name}
+                club={club}
+                onClick={() => setSelectedClub(club)}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )

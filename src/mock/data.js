@@ -9,20 +9,20 @@ const ENTITY_TYPES = {
 
 // Define the faculties or departments
 const FACULTIES = {
-  SME: "Trường Cơ khí - sme",
+  SME: "Trường Cơ khí - SME",
   SOICT: "Trường Công nghệ Thông tin và Truyền thông - SoICT",
-  SEEE: "Trường Điện - Điện tử - seee",
-  SCIS: "Trường Hoá và KHSS - scis",
-  SMSE: "Trường Vật liệu - smse",
-  SEM: "Trường Kinh tế - sem",
-  FAMI: "Khoa Toán - Tin - fami",
-  SEP: "Khoa Vật lý Kỹ thuật - sep",
-  SOFL: "Khoa Ngoại ngữ - sofl",
-  FED: "Khoa Khoa học và CNGD - fed",
+  SEEE: "Trường Điện - Điện tử - SEEE",
+  SCIS: "Trường Hoá và KHSS - SCIS",
+  SMSE: "Trường Vật liệu - SMSE",
+  SEM: "Trường Kinh tế - SEM",
+  FAMI: "Khoa Toán - Tin - FAMI",
+  SEP: "Khoa Vật lý Kỹ thuật - SEP",
+  SOFL: "Khoa Ngoại ngữ - SOFL",
+  FED: "Khoa Khoa học và CNGD - FED",
 };
 
 // Sample club data
-const clubs = [
+export const clubs = [
   {
     name: "Câu lạc bộ Sáng tạo Sinh viên (SINNO Club)",
     executive_board: {
@@ -45,8 +45,11 @@ const clubs = [
       "Tham gia các cuộc thi Hackathon.",
       "Phát triển dự án thực tế.",
     ],
-    criteria: "Đam mê công nghệ, có kiến thức cơ bản về lập trình.",
-    belongTo: [FACULTIES.SOICT, FACULTIES.SOICT],
+    criteria: [
+      "Đam mê công nghệ, có kiến thức cơ bản về lập trình.",
+      "Có khả năng làm việc nhóm.",
+    ],
+    belongTo: [FACULTIES.SOICT],
     contact: "sinno.soict@gmail.com",
     image,
     gallery: [image, image, image],
@@ -81,7 +84,10 @@ const clubs = [
       "Tổ chức các buổi workshop về robot và trí tuệ nhân tạo.",
       "Phát triển dự án robot cho các tổ chức doanh nghiệp.",
     ],
-    criteria: "Đam mê robot và công nghệ, có khả năng làm việc nhóm.",
+    criteria: [
+      "Đam mê robot và công nghệ, có khả năng làm việc nhóm.",
+      "Có kiến thức cơ bản về lập trình.",
+    ],
     belongTo: [FACULTIES.SOICT],
     contact: "robotics.club@soict.edu.vn",
     image,
@@ -156,7 +162,10 @@ const clubs = [
       "Tham gia các cuộc thi sáng tạo.",
       "Cung cấp tài liệu, công cụ cho các dự án sáng tạo.",
     ],
-    criteria: "Có đam mê sáng tạo, muốn học hỏi về kỹ thuật chế tạo.",
+    criteria: [
+      "Có đam mê sáng tạo, muốn học hỏi về kỹ thuật chế tạo.",
+      "Có khả năng làm việc nhóm.",
+    ],
     belongTo: [FACULTIES.SMSE],
     contact: "maker.club@smse.edu.vn",
     image,
@@ -192,7 +201,10 @@ const clubs = [
       "Phát triển các mô hình học máy.",
       "Tổ chức các buổi hội thảo về AI.",
     ],
-    criteria: "Có kiến thức về lập trình Python, đam mê nghiên cứu AI.",
+    criteria: [
+      "Có kiến thức về lập trình Python, đam mê nghiên cứu AI.",
+      "Có khả năng làm việc nhóm.",
+    ],
     belongTo: [FACULTIES.SOICT],
     contact: "ai.lab@soict.edu.vn",
     image,
@@ -231,7 +243,10 @@ const clubs = [
       "Phát triển các giải pháp bảo mật dựa trên Blockchain.",
       "Tổ chức các buổi hội thảo về Blockchain và tiền điện tử.",
     ],
-    criteria: "Có kiến thức cơ bản về Blockchain và Cryptocurrencies.",
+    criteria: [
+      "Có kiến thức cơ bản về Blockchain và Cryptocurrencies.",
+      "Có khả năng lập trình.",
+    ],
     belongTo: [FACULTIES.SOICT],
     contact: "blockchain.lab@soict.edu.vn",
     image,
@@ -270,9 +285,11 @@ const clubs = [
       "Thực hiện thí nghiệm quang học và điện tử.",
       "Tổ chức các buổi hội thảo về vật lý ứng dụng.",
     ],
-    criteria:
+    criteria: [
       "Có kiến thức về vật lý, đặc biệt là trong lĩnh vực quang học và điện tử.",
-    belongTo: [FACULTIES.SEE],
+      "Có khả năng làm việc nhóm.",
+    ],
+    belongTo: [FACULTIES.SEEE],
     contact: "applied.phys.lab@see.edu.vn",
     image,
     gallery: [image, image, image],
@@ -310,7 +327,10 @@ const clubs = [
       "Phát triển các mô hình học máy và AI.",
       "Tổ chức các buổi hội thảo về Khoa học Dữ liệu.",
     ],
-    criteria: "Có nền tảng vững về toán học và lập trình.",
+    criteria: [
+      "Có nền tảng vững về toán học và lập trình.",
+      "Có khả năng làm việc nhóm.",
+    ],
     belongTo: [FACULTIES.FAMI],
     contact: "data.science.lab@fami.edu.vn",
     image,
@@ -349,7 +369,10 @@ const clubs = [
       "Phát triển các giải pháp bảo mật trong các hệ thống phân tán.",
       "Tổ chức các buổi hội thảo về bảo mật mạng và an toàn thông tin.",
     ],
-    criteria: "Có kiến thức về mạng máy tính và bảo mật thông tin.",
+    criteria: [
+      "Có kiến thức về mạng máy tính và bảo mật thông tin.",
+      "Có khả năng lập trình.",
+    ],
     belongTo: [FACULTIES.SOICT],
     contact: "network.security.lab@soict.edu.vn",
     image,
