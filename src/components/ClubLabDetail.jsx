@@ -40,7 +40,7 @@ export default function ClubLabDetail({ club, onBack }) {
             {club.type === "club" ? "Câu lạc bộ" : "Phòng thí nghiệm"}
           </p>
           <p className="text-gray-600 text-sm">
-            Trực thuộc: {club.belongTo.join(", ")}
+            Trực thuộc: {club.belongTo}
           </p>
           <ul className="text-gray-700 text-sm mt-4 space-y-1">
             <li><strong>📍 Địa điểm:</strong> {club.location}</li>

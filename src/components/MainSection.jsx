@@ -2,9 +2,23 @@ import ClubLabItem from "./ClubLabItem";
 import ClubLabDetail from "./ClubLabDetail";
 import { clubs } from "../mock/data";
 import { useState } from "react";
+import { FACULTIES, ENTITY_TYPES } from "../mock/data";
+
 
 export default function MainSection() {
   const [selectedClub, setSelectedClub] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedType, setSelectedType] = useState("");
+  const [selectedFaculty, setSelectedFaculty] = useState("");
+
+  const filteredClubs = clubs.filter((club) => {
+    const matchesType = selectedType ? club.type === selectedType : true;
+    const matchesFaculty = selectedFaculty
+      ? club.belongTo === selectedFaculty
+      : true;
+    const matchesSearch = club.name.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesType && matchesFaculty && matchesSearch;
+  });
 
   return (
     <div className="relative isolate px-6 pt-14 lg:px-8">
@@ -39,15 +53,67 @@ export default function MainSection() {
         {selectedClub ? (
           <ClubLabDetail club={selectedClub} onBack={() => setSelectedClub(null)} />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {clubs.map((club) => (
-              <ClubLabItem
-                key={club.name}
-                club={club}
-                onClick={() => setSelectedClub(club)}
+          <>
+            <div className="flex flex-wrap items-center justify-center gap-4 mb-8 px-4">
+              <input
+                type="text"
+                placeholder="🔍 Tìm theo tên CLB/Lab..."
+                className="border border-gray-300 rounded-xl px-4 py-2 w-72 text-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
-            ))}
-          </div>
+
+              <select
+                className="border border-gray-300 rounded-xl px-4 py-2 text-sm"
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+              >
+                <option value="">🎯 Tất cả loại hình</option>
+                <option value={ENTITY_TYPES.CLUB}>Câu lạc bộ</option>
+                <option value={ENTITY_TYPES.LAB}>Phòng thí nghiệm</option>
+              </select>
+
+              <select
+                className="border border-gray-300 rounded-xl px-4 py-2 text-sm"
+                value={selectedFaculty}
+                onChange={(e) => setSelectedFaculty(e.target.value)}
+              >
+                <option value="">🏫 Tất cả trường/khoa</option>
+                {Object.entries(FACULTIES).map(([key, label]) => (
+                  <option key={key} value={label}>{label}</option>
+                ))}
+              </select>
+
+              {(searchTerm || selectedType || selectedFaculty) && (
+                <button
+                  onClick={() => {
+                    setSearchTerm("");
+                    setSelectedType("");
+                    setSelectedFaculty("");
+                  }}
+                  className="text-sm text-red-600 hover:underline"
+                >
+                  🧼 Xoá bộ lọc
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
+              {filteredClubs.map((club) => (
+                <ClubLabItem
+                  key={club.name}
+                  club={club}
+                  onClick={() => setSelectedClub(club)}
+                />
+              ))}
+
+              {filteredClubs.length === 0 && (
+                <p className="text-center text-gray-500 col-span-full">
+                  Không tìm thấy CLB/Lab nào phù hợp với tiêu chí lọc.
+                </p>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>

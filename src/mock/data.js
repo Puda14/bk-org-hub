@@ -2,13 +2,13 @@
 const image = "https://hust.edu.vn/uploads/sys/news/2023_06/cbo_0362.jpg";
 
 // Define the types of entities
-const ENTITY_TYPES = {
+export const ENTITY_TYPES = {
   CLUB: "club",
   LAB: "lab",
 };
 
 // Define the faculties or departments
-const FACULTIES = {
+export const FACULTIES = {
   SME: "Trường Cơ khí - SME",
   SOICT: "Trường Công nghệ Thông tin và Truyền thông - SoICT",
   SEEE: "Trường Điện - Điện tử - SEEE",
@@ -49,7 +49,7 @@ export const clubs = [
       "Đam mê công nghệ, có kiến thức cơ bản về lập trình.",
       "Có khả năng làm việc nhóm.",
     ],
-    belongTo: [FACULTIES.SOICT],
+    belongTo: FACULTIES.SOICT,
     contact: "sinno.soict@gmail.com",
     image,
     gallery: [image, image, image],
@@ -88,7 +88,7 @@ export const clubs = [
       "Đam mê robot và công nghệ, có khả năng làm việc nhóm.",
       "Có kiến thức cơ bản về lập trình.",
     ],
-    belongTo: [FACULTIES.SOICT],
+    belongTo: FACULTIES.SOICT,
     contact: "robotics.club@soict.edu.vn",
     image,
     gallery: [image, image, image],
@@ -124,7 +124,7 @@ export const clubs = [
       "Chia sẻ kiến thức về thị trường tài chính và kinh doanh.",
     ],
     criteria: "Yêu thích nghiên cứu kinh tế, có kiến thức cơ bản về tài chính.",
-    belongTo: [FACULTIES.SEM],
+    belongTo: FACULTIES.SEM,
     contact: "economics.club@sem.edu.vn",
     image,
     gallery: [image, image, image],
@@ -166,7 +166,7 @@ export const clubs = [
       "Có đam mê sáng tạo, muốn học hỏi về kỹ thuật chế tạo.",
       "Có khả năng làm việc nhóm.",
     ],
-    belongTo: [FACULTIES.SMSE],
+    belongTo: FACULTIES.SMSE,
     contact: "maker.club@smse.edu.vn",
     image,
     gallery: [image, image, image],
@@ -205,7 +205,7 @@ export const clubs = [
       "Có kiến thức về lập trình Python, đam mê nghiên cứu AI.",
       "Có khả năng làm việc nhóm.",
     ],
-    belongTo: [FACULTIES.SOICT],
+    belongTo: FACULTIES.SOICT,
     contact: "ai.lab@soict.edu.vn",
     image,
     gallery: [image, image, image],
@@ -247,7 +247,7 @@ export const clubs = [
       "Có kiến thức cơ bản về Blockchain và Cryptocurrencies.",
       "Có khả năng lập trình.",
     ],
-    belongTo: [FACULTIES.SOICT],
+    belongTo: FACULTIES.SOICT,
     contact: "blockchain.lab@soict.edu.vn",
     image,
     gallery: [image, image, image],
@@ -289,7 +289,7 @@ export const clubs = [
       "Có kiến thức về vật lý, đặc biệt là trong lĩnh vực quang học và điện tử.",
       "Có khả năng làm việc nhóm.",
     ],
-    belongTo: [FACULTIES.SEEE],
+    belongTo: FACULTIES.SEEE,
     contact: "applied.phys.lab@see.edu.vn",
     image,
     gallery: [image, image, image],
@@ -331,7 +331,7 @@ export const clubs = [
       "Có nền tảng vững về toán học và lập trình.",
       "Có khả năng làm việc nhóm.",
     ],
-    belongTo: [FACULTIES.FAMI],
+    belongTo: FACULTIES.FAMI,
     contact: "data.science.lab@fami.edu.vn",
     image,
     gallery: [image, image, image],
@@ -373,7 +373,7 @@ export const clubs = [
       "Có kiến thức về mạng máy tính và bảo mật thông tin.",
       "Có khả năng lập trình.",
     ],
-    belongTo: [FACULTIES.SOICT],
+    belongTo: FACULTIES.SOICT,
     contact: "network.security.lab@soict.edu.vn",
     image,
     gallery: [image, image, image],
