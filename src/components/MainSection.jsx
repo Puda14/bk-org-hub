@@ -2,6 +2,9 @@ import { useState } from "react";
 import ClubLabItem from "./ClubLabItem";
 import ClubLabDetail from "./ClubLabDetail";
 import ApplicationForm from "./ApplicationForm";
+import ChatBot from "./ChatBot";
+import { Bot } from "lucide-react";
+
 import { clubs } from "../mock/data";
 import { FACULTIES, ENTITY_TYPES } from "../mock/data";
 
@@ -11,7 +14,8 @@ export default function MainSection() {
   const [selectedType, setSelectedType] = useState("");
   const [selectedFaculty, setSelectedFaculty] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [showForm, setShowForm] = useState(false); // NEW
+  const [showForm, setShowForm] = useState(false);
+  const [showChatbot, setShowChatbot] = useState(false);
 
   const itemsPerPage = 9;
 
@@ -177,6 +181,16 @@ export default function MainSection() {
           </>
         )}
       </div>
+
+      <ChatBot isOpen={showChatbot} onClose={() => setShowChatbot(false)} />
+
+      <button
+        onClick={() => setShowChatbot(true)}
+        className="fixed bottom-6 right-6 bg-red-600 text-white p-3 rounded-full shadow-lg hover:bg-red-700 z-40"
+      >
+        <Bot size={24} />
+      </button>
+
     </div>
   );
 }
