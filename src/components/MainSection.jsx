@@ -1,24 +1,40 @@
+import { useState } from "react";
 import ClubLabItem from "./ClubLabItem";
 import ClubLabDetail from "./ClubLabDetail";
 import { clubs } from "../mock/data";
-import { useState } from "react";
 import { FACULTIES, ENTITY_TYPES } from "../mock/data";
-
 
 export default function MainSection() {
   const [selectedClub, setSelectedClub] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("");
   const [selectedFaculty, setSelectedFaculty] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 9;
 
   const filteredClubs = clubs.filter((club) => {
     const matchesType = selectedType ? club.type === selectedType : true;
     const matchesFaculty = selectedFaculty
       ? club.belongTo === selectedFaculty
       : true;
-    const matchesSearch = club.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = club.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
     return matchesType && matchesFaculty && matchesSearch;
   });
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentClubs = filteredClubs.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredClubs.length / itemsPerPage);
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setSelectedType("");
+    setSelectedFaculty("");
+    setCurrentPage(1);
+  };
 
   return (
     <div className="relative isolate px-6 pt-14 lg:px-8">
@@ -38,7 +54,7 @@ export default function MainSection() {
           <div className="mt-10 flex items-center justify-center gap-x-6">
             <a
               href="#"
-              className="rounded-md bg-red-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+              className="rounded-md bg-red-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500"
             >
               Khám phá ngay
             </a>
@@ -60,13 +76,19 @@ export default function MainSection() {
                 placeholder="🔍 Tìm theo tên CLB/Lab..."
                 className="border border-gray-300 rounded-xl px-4 py-2 w-72 text-sm"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
 
               <select
                 className="border border-gray-300 rounded-xl px-4 py-2 text-sm"
                 value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
+                onChange={(e) => {
+                  setSelectedType(e.target.value);
+                  setCurrentPage(1);
+                }}
               >
                 <option value="">🎯 Tất cả loại hình</option>
                 <option value={ENTITY_TYPES.CLUB}>Câu lạc bộ</option>
@@ -76,7 +98,10 @@ export default function MainSection() {
               <select
                 className="border border-gray-300 rounded-xl px-4 py-2 text-sm"
                 value={selectedFaculty}
-                onChange={(e) => setSelectedFaculty(e.target.value)}
+                onChange={(e) => {
+                  setSelectedFaculty(e.target.value);
+                  setCurrentPage(1);
+                }}
               >
                 <option value="">🏫 Tất cả trường/khoa</option>
                 {Object.entries(FACULTIES).map(([key, label]) => (
@@ -86,11 +111,7 @@ export default function MainSection() {
 
               {(searchTerm || selectedType || selectedFaculty) && (
                 <button
-                  onClick={() => {
-                    setSearchTerm("");
-                    setSelectedType("");
-                    setSelectedFaculty("");
-                  }}
+                  onClick={resetFilters}
                   className="text-sm text-red-600 hover:underline"
                 >
                   🧼 Xoá bộ lọc
@@ -99,7 +120,7 @@ export default function MainSection() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
-              {filteredClubs.map((club) => (
+              {currentClubs.map((club) => (
                 <ClubLabItem
                   key={club.name}
                   club={club}
@@ -113,9 +134,50 @@ export default function MainSection() {
                 </p>
               )}
             </div>
+
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-8 gap-2 text-sm">
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className={`px-3 py-1 rounded-md border ${currentPage === 1
+                    ? "text-gray-400"
+                    : "text-red-600 hover:bg-red-50"
+                    }`}
+                >
+                  ← Trước
+                </button>
+
+                {[...Array(totalPages)].map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`px-3 py-1 rounded-md border ${currentPage === i + 1
+                      ? "bg-red-600 text-white"
+                      : "text-red-600 hover:bg-red-50"
+                      }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                  className={`px-3 py-1 rounded-md border ${currentPage === totalPages
+                    ? "text-gray-400"
+                    : "text-red-600 hover:bg-red-50"
+                    }`}
+                >
+                  Sau →
+                </button>
+              </div>
+            )}
           </>
         )}
       </div>
     </div>
-  )
+  );
 }
