@@ -11,27 +11,23 @@ import {
   FaTelegram,
   FaGlobe,
   FaEnvelope,
-  FaMapMarkerAlt,
-  FaUsers,
-  FaCalendarAlt,
   FaInfoCircle,
 } from "react-icons/fa";
 import {
-  Link as LinkIcon,
-  Users2,
-  CalendarCheck2,
-  MapPin,
-  Mail,
-  Building,
-  ListChecks,
-  Image as ImageIcon,
-  Share2,
-  Mic2,
-  Award as TrophyIcon,
-  UsersRound as ExecutiveIcon,
-  Handshake,
-  ArrowLeft,
-  ClipboardList as ActivitiesIcon,
+  Link as LinkIcon, // Icon mặc định cho link
+  Users2, // Icon cho Số thành viên
+  CalendarCheck2, // Icon cho Năm thành lập
+  MapPin, // Icon cho Địa điểm
+  Mail, // Icon cho Liên hệ
+  Building, // Icon cho Trực thuộc
+  ListChecks, // Icon cho Tiêu chí
+  Image as ImageIcon, // Icon cho Thư viện ảnh
+  Share2, // Icon cho Mạng xã hội
+  ClipboardList as ActivitiesIcon, // Icon cho Hoạt động
+  Award as TrophyIcon, // Icon cho Thành tựu
+  UsersRound as ExecutiveIcon, // Icon cho Ban điều hành
+  Handshake, // Icon cho Đối tác
+  ArrowLeft, // Icon cho nút Quay lại
 } from "lucide-react";
 
 const iconMap = {
@@ -49,12 +45,18 @@ const iconMap = {
   default: <LinkIcon size={20} className="text-gray-500" />,
 };
 
-// Helper component để hiển thị một mục thông tin kèm icon
-const InfoItemDisplay = ({ icon: Icon, label, value, href, isEmail }) => {
+// Helper component để hiển thị một mục thông tin cơ bản
+const InfoItemDisplay = ({ icon: Icon, label, value, href }) => {
   if (!value || value === "Chưa cập nhật") return null;
 
   let content = value;
-  if (isEmail && value.includes("@")) {
+  const isEmail =
+    typeof value === "string" &&
+    value.includes("@") &&
+    !value.startsWith("http");
+  const isHttpLink = typeof value === "string" && value.startsWith("http");
+
+  if (isEmail) {
     content = (
       <a
         href={`mailto:${value}`}
@@ -63,10 +65,11 @@ const InfoItemDisplay = ({ icon: Icon, label, value, href, isEmail }) => {
         {value}
       </a>
     );
-  } else if (href) {
+  } else if (href || isHttpLink) {
+    // href có thể được truyền riêng hoặc tự phát hiện từ value
     content = (
       <a
-        href={href}
+        href={href || value}
         target="_blank"
         rel="noopener noreferrer"
         className="text-red-600 hover:text-red-700 hover:underline break-all"
@@ -77,79 +80,47 @@ const InfoItemDisplay = ({ icon: Icon, label, value, href, isEmail }) => {
   }
 
   return (
-    <div className="flex items-start text-sm mb-2">
+    <div className="flex items-start text-sm mb-2.5">
       {Icon && (
-        <Icon className="text-red-500 mr-2.5 mt-0.5 flex-shrink-0" size={16} />
+        <Icon className="text-red-500 mr-3 mt-1 flex-shrink-0" size={16} />
       )}
       <div>
-        <span className="font-semibold text-gray-700">{label}:</span>
-        <span className="text-gray-600 ml-1">{content}</span>
+        <span className="font-semibold text-gray-800">{label}:</span>
+        <span className="text-gray-600 ml-1.5">{content}</span>
       </div>
     </div>
   );
 };
 
-// Helper component để render các khối thông tin
-const InfoSection = ({
-  title,
-  icon: Icon,
-  children,
-  fullSpan = false,
-  extraHeaderContent,
-}) => {
-  const validChildren = React.Children.toArray(children).filter(
-    (child) =>
-      !!child &&
-      (typeof child !== "object" ||
-        React.isValidElement(child) ||
-        Object.keys(child).length > 0)
-  );
-
-  // Điều chỉnh logic kiểm tra children để tránh lỗi với <p> defaultText
-  let hasContent = false;
-  if (validChildren.length > 0) {
+// Helper component để render các khối thông tin (section)
+const InfoSection = ({ title, icon: Icon, children, fullSpan = false }) => {
+  // Lọc bỏ các children là null, undefined, hoặc React Fragment rỗng để kiểm tra có nội dung không
+  const validChildren = React.Children.toArray(children).filter((child) => {
+    if (child === null || child === undefined) return false;
+    // Nếu child là một <p> chứa defaultText, coi như không có nội dung thực sự
     if (
-      validChildren.length === 1 &&
-      React.isValidElement(validChildren[0]) &&
-      validChildren[0].type === "p"
+      React.isValidElement(child) &&
+      child.type === "p" &&
+      child.props.children &&
+      typeof child.props.children === "string" &&
+      child.props.children.includes("Chưa cập nhật")
     ) {
-      // Nếu children duy nhất là <p>, kiểm tra nội dung của nó
-      const pContent = validChildren[0].props.children;
-      if (
-        typeof pContent === "string" &&
-        pContent.trim() !== "" &&
-        pContent !== "Thông tin chưa được cập nhật." &&
-        pContent !== "Chưa cập nhật thông tin." &&
-        pContent !== "Chưa có thông tin hoạt động." &&
-        pContent !== "Chưa có thành tựu nào." &&
-        pContent !== "Chưa có thông tin tiêu chí." &&
-        pContent !== "Chưa có thông tin đối tác/tài trợ."
-      ) {
-        hasContent = true;
-      } else if (Array.isArray(pContent) && pContent.length > 0) {
-        // Trường hợp pContent là mảng
-        hasContent = true;
-      }
-    } else {
-      // Nếu có nhiều children hoặc child không phải là <p> mặc định rỗng
-      hasContent = true;
+      return false;
     }
-  }
+    return true;
+  });
 
-  if (!hasContent) return null;
+  if (validChildren.length === 0) return null;
 
   return (
     <div
-      className={`bg-white border border-gray-200 rounded-lg p-5 shadow-md ${
+      className={`bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-sm ${
         fullSpan ? "lg:col-span-3 md:col-span-2 sm:col-span-1" : ""
       }`}
     >
-      <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
-        <div className="flex items-center">
-          {Icon && <Icon className="text-red-600 mr-2" size={20} />}
-          <h2 className="text-lg font-semibold text-red-700">{title}</h2>
-        </div>
-        {extraHeaderContent && <div>{extraHeaderContent}</div>}
+      <div className="flex items-center mb-3.5 pb-2.5 border-b border-gray-200">
+        {Icon && <Icon className="text-red-600 mr-2.5" size={22} />}
+        <h2 className="text-xl font-semibold text-red-700">{title}</h2>
       </div>
       {children}
     </div>
@@ -160,7 +131,7 @@ export default function ClubLabDetail({ club, onBackClick }) {
   if (!club) {
     return (
       <p className="text-center text-gray-500 py-20">
-        Không có dữ liệu chi tiết để hiển thị.
+        Đang tải hoặc không có dữ liệu chi tiết...
       </p>
     );
   }
@@ -177,19 +148,18 @@ export default function ClubLabDetail({ club, onBackClick }) {
   const imageUrl =
     club.logo ||
     club.image ||
-    "https://via.placeholder.com/800x600?text=HUST+ORG";
+    "https://via.placeholder.com/400x400?text=HUST+ORG";
   const yearEstablished =
     club.yearOfEstablishment || club.establishedYear || "Chưa cập nhật";
   const contactInfo = club.contactEmail || club.contact || "Chưa cập nhật";
 
   const renderExecutiveBoard = () => {
-    // Sửa ở đây: dùng club.executive_board và boardData.mentor
-    const boardData = club.executive_board; // << SỬA LẠI TÊN TRƯỜNG
+    const boardData = club.executive_board; // Đảm bảo khớp với tên trường từ API
     if (
       !boardData ||
       Object.keys(boardData).length === 0 ||
       (!boardData.chairman &&
-        (!boardData.mentor || boardData.mentor.length === 0)) // << SỬA LẠI TÊN TRƯỜNG
+        (!boardData.mentor || boardData.mentor.length === 0))
     ) {
       return (
         <p className="text-sm text-gray-500 italic">
@@ -198,24 +168,21 @@ export default function ClubLabDetail({ club, onBackClick }) {
       );
     }
     const chairman = boardData.chairman;
-    const mentorsArray = Array.isArray(boardData.mentor) // << SỬA LẠI TÊN TRƯỜNG
+    const mentorsArray = Array.isArray(boardData.mentor)
       ? boardData.mentor
       : boardData.mentor
       ? [boardData.mentor]
       : [];
     const mentorNames = mentorsArray
-      .map(
-        (
-          mentorItem // Đổi tên biến để tránh nhầm lẫn
-        ) =>
-          typeof mentorItem === "string"
-            ? mentorItem.trim()
-            : mentorItem?.name?.trim()
+      .map((mentorItem) =>
+        typeof mentorItem === "string"
+          ? mentorItem.trim()
+          : mentorItem?.name?.trim()
       )
       .filter(Boolean)
       .join(", ");
 
-    if (!chairman && !mentorNames) {
+    if (!chairman && (!mentorNames || mentorNames.length === 0)) {
       return (
         <p className="text-sm text-gray-500 italic">
           Thông tin chưa được cập nhật.
@@ -223,14 +190,14 @@ export default function ClubLabDetail({ club, onBackClick }) {
       );
     }
     return (
-      <ul className="text-gray-700 text-sm list-none space-y-1">
+      <ul className="text-gray-700 text-sm list-none space-y-1.5">
         {chairman && (
           <li>
             <strong className="font-medium">Chủ nhiệm/Trưởng Lab:</strong>{" "}
             {chairman}
           </li>
         )}
-        {mentorNames && (
+        {mentorNames && mentorNames.length > 0 && (
           <li>
             <strong className="font-medium">Cố vấn/Mentor:</strong>{" "}
             {mentorNames}
@@ -245,69 +212,84 @@ export default function ClubLabDetail({ club, onBackClick }) {
     defaultText = "Chưa cập nhật thông tin."
   ) => {
     if (!Array.isArray(items) || items.length === 0) {
+      return <p className="text-sm text-gray-500 italic">{defaultText}</p>; // Sẽ được InfoSection lọc bỏ nếu là children duy nhất
+    }
+    const listContent = items
+      .map((item, index) => {
+        const key = `item-${index}-${
+          typeof item === "string"
+            ? item.slice(0, 5)
+            : (item?.title || item?.name || "def").slice(0, 5)
+        }`;
+        const mainText =
+          typeof item === "string" ? item : item?.title || item?.name || null; // Trả về null nếu không có
+        const subText = typeof item === "object" ? item?.description : null;
+        const yearText =
+          typeof item === "object" && item?.year ? ` (${item.year})` : "";
+
+        if (!mainText && !subText) return null; // Bỏ qua item rỗng hoàn toàn
+
+        return (
+          <li key={key} className="leading-relaxed">
+            {mainText && (
+              <span className="font-medium text-gray-800">{mainText}</span>
+            )}
+            {yearText && <span className="text-gray-600">{yearText}</span>}
+            {subText && (
+              <p className="text-xs text-gray-600 pl-4 mt-0.5">{subText}</p>
+            )}
+          </li>
+        );
+      })
+      .filter(Boolean); // Lọc bỏ các phần tử null
+
+    if (listContent.length === 0) {
       return <p className="text-sm text-gray-500 italic">{defaultText}</p>;
     }
+
     return (
-      <ul className="list-disc list-inside space-y-1.5 text-sm text-gray-700">
-        {items.map((item, index) => {
-          const key = `item-${index}-${Math.random()
-            .toString(36)
-            .substring(7)}`;
-          const mainText =
-            typeof item === "string"
-              ? item
-              : item?.title || item?.name || "N/A";
-          const subText = typeof item === "object" ? item?.description : null;
-          const yearText =
-            typeof item === "object" && item?.year ? ` (${item.year})` : "";
-          if (mainText === "N/A" && !subText) return null;
-          return (
-            <li key={key}>
-              <span className="font-medium">{mainText}</span>
-              {yearText}
-              {subText && (
-                <p className="text-xs text-gray-500 pl-4 mt-0.5">{subText}</p>
-              )}
-            </li>
-          );
-        })}
+      <ul className="list-disc list-inside space-y-2 text-sm text-gray-700">
+        {listContent}
       </ul>
     );
   };
 
   return (
-    <div className="mt-20 max-w-5xl mx-auto bg-white p-6 sm:p-8 rounded-xl shadow-2xl">
+    // Bỏ mt-20, div này là card nội dung chính
+    <div className="max-w-5xl mx-auto bg-white p-6 sm:p-10 rounded-2xl shadow-2xl">
+      {/* Nút "Quay lại" được đặt ở đây */}
       {onBackClick && (
-        <div className="mb-6">
+        <div className="mb-8">
           <button
             onClick={onBackClick}
-            className="inline-flex items-center text-sm font-medium text-red-600 hover:text-red-700 transition-colors group focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-lg p-2 hover:bg-red-50"
+            className="inline-flex items-center text-sm font-semibold text-red-600 hover:text-red-700 transition-colors group focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 rounded-lg py-2 px-3 hover:bg-red-50"
           >
             <ArrowLeft
-              size={20}
-              className="mr-1.5 group-hover:-translate-x-1.5 transition-transform duration-200 ease-in-out"
+              size={18}
+              className="mr-2 group-hover:-translate-x-1 transition-transform duration-200 ease-in-out"
             />
             Quay lại
           </button>
         </div>
       )}
 
-      <header className="flex flex-col md:flex-row gap-6 md:gap-8 mb-8 pb-8 border-b border-gray-200">
-        <div className="md:w-1/3 lg:w-1/4 flex-shrink-0 mx-auto md:mx-0">
+      {/* Header: Ảnh và Thông tin cơ bản */}
+      <header className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-10 mb-10 pb-10 border-b border-gray-200">
+        <div className="w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 flex-shrink-0">
           <img
             src={imageUrl}
             alt={`Hình ảnh của ${clubName}`}
-            className="w-full max-w-xs md:max-w-none aspect-square object-cover rounded-lg shadow-lg border-4 border-white"
+            className="w-full h-full object-cover rounded-full shadow-xl border-4 border-white"
           />
         </div>
-        <div className="md:w-2/3 lg:w-3/4 text-center md:text-left">
-          <p className="text-base text-red-600 font-semibold mb-1 tracking-wide uppercase">
+        <div className="flex-grow text-center md:text-left mt-4 md:mt-0">
+          <p className="text-lg text-red-600 font-bold mb-1 tracking-wide uppercase">
             {clubTypeDisplay}
           </p>
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">
+          <h1 className="text-4xl lg:text-5xl font-extrabold text-gray-900 mb-5">
             {clubName}
           </h1>
-          <div className="space-y-1.5">
+          <div className="space-y-2.5">
             {club.belongTo && (
               <InfoItemDisplay
                 icon={Building}
@@ -336,8 +318,13 @@ export default function ClubLabDetail({ club, onBackClick }) {
               icon={Mail}
               label="Liên hệ"
               value={contactInfo}
-              isEmail={contactInfo.includes("@")}
-              href={contactInfo.startsWith("http") ? contactInfo : undefined}
+              href={
+                contactInfo.startsWith("http")
+                  ? contactInfo
+                  : contactInfo.includes("@")
+                  ? `mailto:${contactInfo}`
+                  : undefined
+              }
             />
             <InfoItemDisplay
               icon={FaGlobe}
@@ -349,24 +336,26 @@ export default function ClubLabDetail({ club, onBackClick }) {
         </div>
       </header>
 
-      <div className="space-y-6">
+      {/* Nội dung chi tiết */}
+      <div className="space-y-10">
         {(club.description || club.detailedDescription) && (
           <InfoSection title="Giới thiệu" icon={FaInfoCircle} fullSpan>
-            <div className="text-gray-700 whitespace-pre-line text-sm leading-relaxed prose prose-sm max-w-none">
+            <div className="text-gray-700 whitespace-pre-line text-sm sm:text-base leading-relaxed prose prose-sm sm:prose max-w-none">
               {club.detailedDescription || club.description}
             </div>
           </InfoSection>
         )}
-        {/* Sửa ở đây: kiểm tra club.executive_board */}
-        {club.executive_board &&
-          Object.keys(club.executive_board).length > 0 && (
-            <InfoSection title="Ban điều hành" icon={ExecutiveIcon} fullSpan>
-              {renderExecutiveBoard()}
-            </InfoSection>
-          )}
+
+        {/* Kiểm tra club.executive_board trước khi render InfoSection */}
+        {club.executive_board && (
+          <InfoSection title="Ban điều hành" icon={ExecutiveIcon} fullSpan>
+            {renderExecutiveBoard()}
+          </InfoSection>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.isArray(club.activities) && club.activities.length > 0 && (
-            <InfoSection title="Hoạt động" icon={ActivitiesIcon}>
+            <InfoSection title="Hoạt động nổi bật" icon={ActivitiesIcon}>
               {renderGenericList(
                 club.activities,
                 "Chưa có thông tin hoạt động."
@@ -384,18 +373,24 @@ export default function ClubLabDetail({ club, onBackClick }) {
             </InfoSection>
           )}
         </div>
+
         {Array.isArray(club.partnersAndSponsors) &&
           club.partnersAndSponsors.length > 0 && (
-            <InfoSection title="Đối tác & Tài trợ" icon={Handshake} fullSpan>
+            <InfoSection
+              title="Đối tác & Nhà tài trợ"
+              icon={Handshake}
+              fullSpan
+            >
               {renderGenericList(
                 club.partnersAndSponsors,
                 "Chưa có thông tin đối tác/tài trợ."
               )}
             </InfoSection>
           )}
+
         {Array.isArray(club.gallery) && club.gallery.length > 0 && (
           <InfoSection title="Thư viện ảnh" icon={ImageIcon} fullSpan>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {club.gallery.map(
                 (imgSrc, index) =>
                   imgSrc &&
@@ -405,7 +400,7 @@ export default function ClubLabDetail({ club, onBackClick }) {
                       href={imgSrc}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block aspect-square overflow-hidden rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-300 bg-gray-100 group"
+                      className="block aspect-square overflow-hidden rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 bg-gray-100 group"
                     >
                       <img
                         src={imgSrc}
@@ -419,6 +414,7 @@ export default function ClubLabDetail({ club, onBackClick }) {
             </div>
           </InfoSection>
         )}
+
         {club.socialMediaLinks &&
           Object.values(club.socialMediaLinks).some(
             (url) =>
@@ -427,8 +423,8 @@ export default function ClubLabDetail({ club, onBackClick }) {
               url.trim() !== "" &&
               url.trim() !== "#"
           ) && (
-            <InfoSection title="Kết nối với chúng tôi" icon={Share2} fullSpan>
-              <div className="flex flex-wrap gap-x-6 gap-y-3">
+            <InfoSection title="Kết nối mạng xã hội" icon={Share2} fullSpan>
+              <div className="flex flex-wrap gap-x-6 gap-y-4">
                 {Object.entries(club.socialMediaLinks)
                   .filter(
                     ([_, urlValue]) =>
@@ -449,7 +445,7 @@ export default function ClubLabDetail({ club, onBackClick }) {
                         href={urlValue}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-gray-700 hover:text-red-600 transition-colors text-sm group"
+                        className="flex items-center gap-2 text-gray-800 hover:text-red-700 transition-colors text-sm group"
                         aria-label={`Trang ${platform} của ${clubName}`}
                       >
                         {IconElement}
