@@ -371,7 +371,7 @@ export default function SuggestionPageLayout() {
         {/* Full-screen scrollable container */}
         <div className="fixed inset-0 w-screen overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4">
-            <Dialog.Panel className="w-full max-w-3xl rounded-xl bg-gray-100 p-1 shadow-2xl">
+            <Dialog.Panel className="w-full max-w-5xl rounded-xl bg-gray-100 p-1 shadow-2xl">
               {" "}
               {/* Nền modal xám nhạt */}
               {isLoadingDetail && (

@@ -256,7 +256,7 @@ export default function ClubLabDetail({ club, onBackClick }) {
 
   return (
     // Bỏ mt-20, div này là card nội dung chính
-    <div className="max-w-5xl mx-auto bg-white p-6 sm:p-10 rounded-2xl shadow-2xl">
+    <div className="max-w-6xl mx-auto bg-white p-6 sm:p-10 rounded-2xl shadow-2xl">
       {/* Nút "Quay lại" được đặt ở đây */}
       {onBackClick && (
         <div className="mb-8">
