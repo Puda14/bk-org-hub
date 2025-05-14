@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ClubLabItem from "./ClubLabItem";
 import ClubLabDetail from "./ClubLabDetail";
 import ApplicationForm from "./ApplicationForm";
 import ChatBot from "./ChatBot";
 import { Bot } from "lucide-react";
 
-import { clubs } from "../mock/data";
 import { FACULTIES, ENTITY_TYPES } from "../mock/data";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default function MainSection() {
   const [selectedClub, setSelectedClub] = useState(null);
@@ -17,9 +18,36 @@ export default function MainSection() {
   const [showForm, setShowForm] = useState(false);
   const [showChatbot, setShowChatbot] = useState(false);
 
+  const [allClubs, setAllClubs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const itemsPerPage = 9;
 
-  const filteredClubs = clubs.filter((club) => {
+  useEffect(() => {
+    const fetchClubs = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_BASE_URL}/entities`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setAllClubs(data);
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+        setAllClubs([]);
+        console.error("Failed to fetch clubs:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClubs();
+  }, []);
+
+  const filteredClubs = allClubs.filter((club) => {
     const matchesType = selectedType ? club.type === selectedType : true;
     const matchesFaculty = selectedFaculty
       ? club.belongTo === selectedFaculty
@@ -42,6 +70,29 @@ export default function MainSection() {
     setCurrentPage(1);
   };
 
+  const handleClubClick = async (club) => {
+    if (club && club._id) {
+      try {
+        setLoading(true);
+        const response = await fetch(`${API_BASE_URL}/entities/${club._id}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const detailedClubData = await response.json();
+        setSelectedClub(detailedClubData);
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+        setSelectedClub(null);
+        console.error("Failed to fetch club details:", err);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      setSelectedClub(club);
+    }
+  };
+
   return (
     <div className="relative isolate px-6 pt-14 lg:px-8">
       <ApplicationForm isOpen={showForm} onClose={() => setShowForm(false)} />
@@ -52,7 +103,8 @@ export default function MainSection() {
             Khám phá và kết nối với các CLB - Lab tại HUST
           </h1>
           <p className="mt-8 text-lg font-medium text-black sm:text-xl">
-            Tìm kiếm đam mê, học hỏi, nghiên cứu và phát triển kỹ năng thông qua cộng đồng sinh viên năng động.
+            Tìm kiếm đam mê, học hỏi, nghiên cứu và phát triển kỹ năng thông qua
+            cộng đồng sinh viên năng động.
           </p>
           <div className="mt-10 flex items-center justify-center gap-x-6">
             <button
@@ -61,7 +113,10 @@ export default function MainSection() {
             >
               Ứng tuyển ngay
             </button>
-            <a href="#" className="text-sm font-semibold text-red-700 hover:text-red-900">
+            <a
+              href="#"
+              className="text-sm font-semibold text-red-700 hover:text-red-900"
+            >
               Tìm hiểu thêm <span aria-hidden="true">→</span>
             </a>
           </div>
@@ -69,116 +124,134 @@ export default function MainSection() {
       </div>
 
       <div className="max-w-7xl mx-auto pb-24">
-        {selectedClub ? (
-          <ClubLabDetail club={selectedClub} onBack={() => setSelectedClub(null)} />
+        {loading && (
+          <p className="text-center text-gray-500">Đang tải dữ liệu...</p>
+        )}
+        {error && <p className="text-center text-red-500">Lỗi: {error}</p>}
+
+        {!loading && !error && selectedClub ? (
+          <ClubLabDetail
+            club={selectedClub}
+            onBack={() => setSelectedClub(null)}
+          />
         ) : (
-          <>
-            <div className="flex flex-wrap items-center justify-center gap-4 mb-8 px-4">
-              <input
-                type="text"
-                placeholder="🔍 Tìm theo tên CLB/Lab..."
-                className="border border-gray-300 rounded-xl px-4 py-2 w-72 text-sm"
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
-              />
-
-              <select
-                className="border border-gray-300 rounded-xl px-4 py-2 text-sm"
-                value={selectedType}
-                onChange={(e) => {
-                  setSelectedType(e.target.value);
-                  setCurrentPage(1);
-                }}
-              >
-                <option value="">🎯 Tất cả loại hình</option>
-                <option value={ENTITY_TYPES.CLUB}>Câu lạc bộ</option>
-                <option value={ENTITY_TYPES.LAB}>Phòng thí nghiệm</option>
-              </select>
-
-              <select
-                className="border border-gray-300 rounded-xl px-4 py-2 text-sm"
-                value={selectedFaculty}
-                onChange={(e) => {
-                  setSelectedFaculty(e.target.value);
-                  setCurrentPage(1);
-                }}
-              >
-                <option value="">🏫 Tất cả trường/khoa</option>
-                {Object.entries(FACULTIES).map(([key, label]) => (
-                  <option key={key} value={label}>{label}</option>
-                ))}
-              </select>
-
-              {(searchTerm || selectedType || selectedFaculty) && (
-                <button
-                  onClick={resetFilters}
-                  className="text-sm text-red-600 hover:underline"
-                >
-                  🧼 Xoá bộ lọc
-                </button>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
-              {currentClubs.map((club) => (
-                <ClubLabItem
-                  key={club.name}
-                  club={club}
-                  onClick={() => setSelectedClub(club)}
+          !loading &&
+          !error && (
+            <>
+              <div className="flex flex-wrap items-center justify-center gap-4 mb-8 px-4">
+                <input
+                  type="text"
+                  placeholder="🔍 Tìm theo tên CLB/Lab..."
+                  className="border border-gray-300 rounded-xl px-4 py-2 w-72 text-sm"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
                 />
-              ))}
 
-              {filteredClubs.length === 0 && (
-                <p className="text-center text-gray-500 col-span-full">
-                  Không tìm thấy CLB/Lab nào phù hợp với tiêu chí lọc.
-                </p>
-              )}
-            </div>
-
-            {totalPages > 1 && (
-              <div className="flex justify-center mt-8 gap-2 text-sm">
-                <button
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className={`px-3 py-1 rounded-md border ${currentPage === 1
-                    ? "text-gray-400"
-                    : "text-red-600 hover:bg-red-50"
-                    }`}
+                <select
+                  className="border border-gray-300 rounded-xl px-4 py-2 text-sm"
+                  value={selectedType}
+                  onChange={(e) => {
+                    setSelectedType(e.target.value);
+                    setCurrentPage(1);
+                  }}
                 >
-                  ← Trước
-                </button>
+                  <option value="">🎯 Tất cả loại hình</option>
+                  <option value={ENTITY_TYPES.CLUB}>Câu lạc bộ</option>
+                  <option value={ENTITY_TYPES.LAB}>Phòng thí nghiệm</option>
+                </select>
 
-                {[...Array(totalPages)].map((_, i) => (
+                <select
+                  className="border border-gray-300 rounded-xl px-4 py-2 text-sm"
+                  value={selectedFaculty}
+                  onChange={(e) => {
+                    setSelectedFaculty(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option value="">🏫 Tất cả trường/khoa</option>
+                  {Object.entries(FACULTIES).map(([key, label]) => (
+                    <option key={key} value={label}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+
+                {(searchTerm || selectedType || selectedFaculty) && (
                   <button
-                    key={i}
-                    onClick={() => setCurrentPage(i + 1)}
-                    className={`px-3 py-1 rounded-md border ${currentPage === i + 1
-                      ? "bg-red-600 text-white"
-                      : "text-red-600 hover:bg-red-50"
-                      }`}
+                    onClick={resetFilters}
+                    className="text-sm text-red-600 hover:underline"
                   >
-                    {i + 1}
+                    🧼 Xoá bộ lọc
                   </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
+                {currentClubs.map((club) => (
+                  <ClubLabItem
+                    key={club._id || club.name}
+                    club={club}
+                    onClick={() => handleClubClick(club)}
+                  />
                 ))}
 
-                <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                  }
-                  disabled={currentPage === totalPages}
-                  className={`px-3 py-1 rounded-md border ${currentPage === totalPages
-                    ? "text-gray-400"
-                    : "text-red-600 hover:bg-red-50"
-                    }`}
-                >
-                  Sau →
-                </button>
+                {filteredClubs.length === 0 && (
+                  <p className="text-center text-gray-500 col-span-full">
+                    Không tìm thấy CLB/Lab nào phù hợp với tiêu chí lọc.
+                  </p>
+                )}
               </div>
-            )}
-          </>
+
+              {totalPages > 1 && (
+                <div className="flex justify-center mt-8 gap-2 text-sm">
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.max(prev - 1, 1))
+                    }
+                    disabled={currentPage === 1}
+                    className={`px-3 py-1 rounded-md border ${
+                      currentPage === 1
+                        ? "text-gray-400"
+                        : "text-red-600 hover:bg-red-50"
+                    }`}
+                  >
+                    ← Trước
+                  </button>
+
+                  {[...Array(totalPages)].map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setCurrentPage(i + 1)}
+                      className={`px-3 py-1 rounded-md border ${
+                        currentPage === i + 1
+                          ? "bg-red-600 text-white"
+                          : "text-red-600 hover:bg-red-50"
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+
+                  <button
+                    onClick={() =>
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                    }
+                    disabled={currentPage === totalPages}
+                    className={`px-3 py-1 rounded-md border ${
+                      currentPage === totalPages
+                        ? "text-gray-400"
+                        : "text-red-600 hover:bg-red-50"
+                    }`}
+                  >
+                    Sau →
+                  </button>
+                </div>
+              )}
+            </>
+          )
         )}
       </div>
 
@@ -190,7 +263,6 @@ export default function MainSection() {
       >
         <Bot size={24} />
       </button>
-
     </div>
   );
 }
