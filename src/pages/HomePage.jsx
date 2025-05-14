@@ -166,7 +166,7 @@ export default function HomePage() {
             {/* Link đến trang gợi ý */}
             <Link
               to="/suggest"
-              className="w-full sm:w-auto rounded-md bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 flex items-center justify-center"
+              className="w-full sm:w-auto rounded-md bg-gray-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 flex items-center justify-center"
             >
               <SearchIcon size={18} className="mr-2" /> Tìm gợi ý CLB/Lab
             </Link>
