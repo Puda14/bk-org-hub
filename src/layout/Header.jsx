@@ -1,20 +1,23 @@
-import { useState } from 'react'
-import { Dialog, DialogPanel } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import { useState } from "react";
+import { Dialog, DialogPanel } from "@headlessui/react";
+import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
 
 const navigation = [
-  { name: 'Trang chủ', href: '#' },
-  { name: 'Danh sách CLB', href: '#' },
-  { name: 'Giới thiệu', href: '#' },
-  { name: 'Liên hệ', href: '#' },
-]
+  { name: "Trang chủ", href: "https://bk-org-hub.vercel.app/" },
+  { name: "Danh sách CLB", href: "https://bk-org-hub.vercel.app/" },
+  { name: "Giới thiệu", href: "https://bk-org-hub.vercel.app/" },
+  { name: "Liên hệ", href: "https://bk-org-hub.vercel.app/" },
+];
 
 export default function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <header className="absolute inset-x-0 top-0 z-50 bg-red-700 text-white">
-      <nav aria-label="Global" className="flex items-center justify-between p-6 lg:px-8">
+      <nav
+        aria-label="Global"
+        className="flex items-center justify-between p-6 lg:px-8"
+      >
         <div className="flex lg:flex-1">
           <a href="#" className="-m-1.5 p-1.5">
             <span className="sr-only">BK Org Hub</span>
@@ -37,18 +40,29 @@ export default function Header() {
         </div>
         <div className="hidden lg:flex lg:gap-x-12">
           {navigation.map((item) => (
-            <a key={item.name} href={item.href} className="text-sm font-semibold text-white hover:text-gray-100">
+            <a
+              key={item.name}
+              href={item.href}
+              className="text-sm font-semibold text-white hover:text-gray-100"
+            >
               {item.name}
             </a>
           ))}
         </div>
         <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-          <a href="#" className="text-sm font-semibold text-white hover:text-gray-100">
+          <a
+            href="#"
+            className="text-sm font-semibold text-white hover:text-gray-100"
+          >
             Đăng nhập <span aria-hidden="true">&rarr;</span>
           </a>
         </div>
       </nav>
-      <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="lg:hidden">
+      <Dialog
+        open={mobileMenuOpen}
+        onClose={setMobileMenuOpen}
+        className="lg:hidden"
+      >
         <div className="fixed inset-0 z-50" />
         <DialogPanel className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-red-700 px-6 py-6 text-white sm:max-w-sm sm:ring-1 sm:ring-red-900/10">
           <div className="flex items-center justify-between">
@@ -95,5 +109,5 @@ export default function Header() {
         </DialogPanel>
       </Dialog>
     </header>
-  )
+  );
 }
