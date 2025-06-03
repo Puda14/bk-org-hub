@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   FaFacebook,
   FaInstagram,
@@ -28,6 +28,8 @@ import {
   UsersRound as ExecutiveIcon, // Icon cho Ban điều hành
   Handshake, // Icon cho Đối tác
   ArrowLeft, // Icon cho nút Quay lại
+  CalendarClock,
+  ArrowUp, // Icon cho nút Scroll to Top
 } from "lucide-react";
 
 const iconMap = {
@@ -66,7 +68,6 @@ const InfoItemDisplay = ({ icon: Icon, label, value, href }) => {
       </a>
     );
   } else if (href || isHttpLink) {
-    // href có thể được truyền riêng hoặc tự phát hiện từ value
     content = (
       <a
         href={href || value}
@@ -94,10 +95,8 @@ const InfoItemDisplay = ({ icon: Icon, label, value, href }) => {
 
 // Helper component để render các khối thông tin (section)
 const InfoSection = ({ title, icon: Icon, children, fullSpan = false }) => {
-  // Lọc bỏ các children là null, undefined, hoặc React Fragment rỗng để kiểm tra có nội dung không
   const validChildren = React.Children.toArray(children).filter((child) => {
     if (child === null || child === undefined) return false;
-    // Nếu child là một <p> chứa defaultText, coi như không có nội dung thực sự
     if (
       React.isValidElement(child) &&
       child.type === "p" &&
@@ -128,6 +127,28 @@ const InfoSection = ({ title, icon: Icon, children, fullSpan = false }) => {
 };
 
 export default function ClubLabDetail({ club, onBackClick }) {
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
+
+  useEffect(() => {
+    const checkScrollTop = () => {
+      if (!showScrollToTop && window.pageYOffset > 400) {
+        setShowScrollToTop(true);
+      } else if (showScrollToTop && window.pageYOffset <= 400) {
+        setShowScrollToTop(false);
+      }
+    };
+
+    window.addEventListener("scroll", checkScrollTop);
+    return () => window.removeEventListener("scroll", checkScrollTop);
+  }, [showScrollToTop]);
+
+  const scrollToTopHandler = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
   if (!club) {
     return (
       <p className="text-center text-gray-500 py-20">
@@ -154,7 +175,7 @@ export default function ClubLabDetail({ club, onBackClick }) {
   const contactInfo = club.contactEmail || club.contact || "Chưa cập nhật";
 
   const renderExecutiveBoard = () => {
-    const boardData = club.executive_board; // Đảm bảo khớp với tên trường từ API
+    const boardData = club.executive_board;
     if (
       !boardData ||
       Object.keys(boardData).length === 0 ||
@@ -212,7 +233,7 @@ export default function ClubLabDetail({ club, onBackClick }) {
     defaultText = "Chưa cập nhật thông tin."
   ) => {
     if (!Array.isArray(items) || items.length === 0) {
-      return <p className="text-sm text-gray-500 italic">{defaultText}</p>; // Sẽ được InfoSection lọc bỏ nếu là children duy nhất
+      return <p className="text-sm text-gray-500 italic">{defaultText}</p>;
     }
     const listContent = items
       .map((item, index) => {
@@ -222,12 +243,12 @@ export default function ClubLabDetail({ club, onBackClick }) {
             : (item?.title || item?.name || "def").slice(0, 5)
         }`;
         const mainText =
-          typeof item === "string" ? item : item?.title || item?.name || null; // Trả về null nếu không có
+          typeof item === "string" ? item : item?.title || item?.name || null;
         const subText = typeof item === "object" ? item?.description : null;
         const yearText =
           typeof item === "object" && item?.year ? ` (${item.year})` : "";
 
-        if (!mainText && !subText) return null; // Bỏ qua item rỗng hoàn toàn
+        if (!mainText && !subText) return null;
 
         return (
           <li key={key} className="leading-relaxed">
@@ -241,7 +262,7 @@ export default function ClubLabDetail({ club, onBackClick }) {
           </li>
         );
       })
-      .filter(Boolean); // Lọc bỏ các phần tử null
+      .filter(Boolean);
 
     if (listContent.length === 0) {
       return <p className="text-sm text-gray-500 italic">{defaultText}</p>;
@@ -255,9 +276,7 @@ export default function ClubLabDetail({ club, onBackClick }) {
   };
 
   return (
-    // Bỏ mt-20, div này là card nội dung chính
-    <div className="max-w-6xl mx-auto bg-white p-6 sm:p-10 rounded-2xl shadow-2xl">
-      {/* Nút "Quay lại" được đặt ở đây */}
+    <div className="max-w-6xl mx-auto bg-white p-6 sm:p-10 rounded-2xl shadow-2xl relative">
       {onBackClick && (
         <div className="mb-8">
           <button
@@ -273,7 +292,6 @@ export default function ClubLabDetail({ club, onBackClick }) {
         </div>
       )}
 
-      {/* Header: Ảnh và Thông tin cơ bản */}
       <header className="flex flex-col md:flex-row items-center md:items-start gap-6 md:gap-10 mb-10 pb-10 border-b border-gray-200">
         <div className="w-48 h-48 md:w-56 md:h-56 lg:w-64 lg:h-64 flex-shrink-0">
           <img
@@ -336,7 +354,6 @@ export default function ClubLabDetail({ club, onBackClick }) {
         </div>
       </header>
 
-      {/* Nội dung chi tiết */}
       <div className="space-y-10">
         {(club.description || club.detailedDescription) && (
           <InfoSection title="Giới thiệu" icon={FaInfoCircle} fullSpan>
@@ -346,12 +363,44 @@ export default function ClubLabDetail({ club, onBackClick }) {
           </InfoSection>
         )}
 
-        {/* Kiểm tra club.executive_board trước khi render InfoSection */}
         {club.executive_board && (
           <InfoSection title="Ban điều hành" icon={ExecutiveIcon} fullSpan>
             {renderExecutiveBoard()}
           </InfoSection>
         )}
+
+        {Array.isArray(club.recruitmentPeriods) &&
+          club.recruitmentPeriods.length > 0 && (
+            <InfoSection
+              title="Kỳ tuyển thành viên"
+              icon={CalendarClock}
+              fullSpan
+            >
+              <div className="space-y-4">
+                {club.recruitmentPeriods.map((period, index) => (
+                  <div
+                    key={index}
+                    className="p-3 bg-gray-100 rounded-md border border-gray-200"
+                  >
+                    <h3 className="text-md font-semibold text-red-600 mb-1">
+                      {period.name || "Chưa có tên đợt tuyển"}
+                    </h3>
+                    {period.time && (
+                      <p className="text-sm text-gray-700 mb-1">
+                        <span className="font-medium">Thời gian:</span>{" "}
+                        {period.time}
+                      </p>
+                    )}
+                    {period.description && (
+                      <p className="text-sm text-gray-600 whitespace-pre-line leading-relaxed">
+                        {period.description}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </InfoSection>
+          )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.isArray(club.activities) && club.activities.length > 0 && (
@@ -459,6 +508,17 @@ export default function ClubLabDetail({ club, onBackClick }) {
             </InfoSection>
           )}
       </div>
+
+      {showScrollToTop && (
+        <button
+          onClick={scrollToTopHandler}
+          className="fixed bottom-10 right-10 bg-red-600 text-white p-3 rounded-full shadow-xl hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-opacity duration-300 ease-in-out z-50"
+          aria-label="Cuộn lên đầu trang"
+          style={{ opacity: showScrollToTop ? 1 : 0 }}
+        >
+          <ArrowUp size={24} />
+        </button>
+      )}
     </div>
   );
 }
