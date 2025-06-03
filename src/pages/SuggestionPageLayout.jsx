@@ -22,14 +22,12 @@ const formFields = [
     label: "Họ và tên",
     type: "text",
     placeholder: "Nguyễn Văn A",
-    required: true,
   },
   {
     name: "personalEmail",
     label: "Email cá nhân",
     type: "email",
     placeholder: "nva@gmail.com",
-    required: true,
   },
   {
     name: "schoolEmail",
@@ -42,7 +40,6 @@ const formFields = [
     label: "Mã số sinh viên",
     type: "text",
     placeholder: "20201234",
-    required: true,
   },
   {
     name: "course",
@@ -55,13 +52,13 @@ const formFields = [
     label: "Trường/Viện",
     type: "text",
     placeholder: "Trường Công nghệ Thông tin & Truyền thông",
-    required: true,
   },
   {
     name: "major",
     label: "Chuyên ngành (VD: Khoa học Máy tính)",
     type: "text",
     placeholder: "Khoa học Máy tính",
+    required: true,
   },
   {
     name: "class",
@@ -74,6 +71,7 @@ const formFields = [
     label: "Kỹ năng chuyên môn",
     type: "textarea",
     placeholder: "VD: Python, React, Node.js, AI, Lập trình nhúng...",
+    required: true,
   },
   {
     name: "softSkills",
@@ -86,6 +84,7 @@ const formFields = [
     label: "Định hướng nghề nghiệp",
     type: "textarea",
     placeholder: "VD: Trở thành kỹ sư AI, Chuyên gia dữ liệu...",
+    required: true,
   },
   {
     name: "achievements",
@@ -326,25 +325,34 @@ export default function SuggestionPageLayout() {
           </h3>
           {suggestions.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {suggestions.map((suggestion) => (
+              {suggestions.map((suggestion, index) => (
                 <div
                   key={suggestion._id}
                   className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-xl transition-shadow cursor-pointer group"
                   onClick={() => handleSuggestionItemClick(suggestion._id)}
                 >
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-semibold text-red-700 group-hover:text-red-800 text-lg">
-                      {suggestion.name}
-                    </h4>
+                  <div className="flex justify-between items-start">
+                    <div className="flex-grow">
+                      <div className="flex items-center">
+                        <span className="mr-2 font-medium text-red-700">
+                          {index + 1}.
+                        </span>
+                        <h4 className="font-semibold text-red-700 group-hover:text-red-800 text-lg">
+                          {suggestion.name}
+                        </h4>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1.5 pl-5">
+                        <span className="font-medium text-gray-700">
+                          Lý do:
+                        </span>
+                        {suggestion.reason}
+                      </p>
+                    </div>
                     <ExternalLink
                       size={18}
-                      className="text-gray-400 group-hover:text-red-600 transition-colors opacity-50 group-hover:opacity-100"
+                      className="text-gray-400 group-hover:text-red-600 transition-colors opacity-50 group-hover:opacity-100 flex-shrink-0" // Thêm flex-shrink-0
                     />
                   </div>
-                  <p className="text-sm text-gray-600 mt-1.5">
-                    <span className="font-medium text-gray-700">Lý do:</span>{" "}
-                    {suggestion.reason}
-                  </p>
                 </div>
               ))}
             </div>
