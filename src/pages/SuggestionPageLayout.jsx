@@ -1,8 +1,8 @@
 // src/pages/SuggestionPageLayout.jsx
 import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Dialog } from "@headlessui/react"; // Sử dụng Dialog của Headless UI cho Modal
-import ClubLabDetailComponent from "../components/ClubLabDetail"; // Import component chi tiết
+import { Dialog } from "@headlessui/react";
+import ClubLabDetailComponent from "../components/ClubLabDetail";
 import {
   ArrowLeft,
   Search,
@@ -12,11 +12,15 @@ import {
   Info,
   Loader2,
   X,
+  AlertTriangle,
 } from "lucide-react";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const formFields = [
+// MASTER LIST: Chứa TẤT CẢ các trường có thể có trong form, dùng để khởi tạo formData
+// và đảm bảo tất cả các key này được gửi đi API.
+// Thuộc tính `label`, `type`, `placeholder` sẽ được lấy từ đây.
+const ALL_FIELD_DEFINITIONS = [
   {
     name: "fullName",
     label: "Họ và tên",
@@ -58,7 +62,6 @@ const formFields = [
     label: "Chuyên ngành (VD: Khoa học Máy tính)",
     type: "text",
     placeholder: "Khoa học Máy tính",
-    required: true,
   },
   {
     name: "class",
@@ -71,7 +74,6 @@ const formFields = [
     label: "Kỹ năng chuyên môn",
     type: "textarea",
     placeholder: "VD: Python, React, Node.js, AI, Lập trình nhúng...",
-    required: true,
   },
   {
     name: "softSkills",
@@ -84,7 +86,6 @@ const formFields = [
     label: "Định hướng nghề nghiệp",
     type: "textarea",
     placeholder: "VD: Trở thành kỹ sư AI, Chuyên gia dữ liệu...",
-    required: true,
   },
   {
     name: "achievements",
@@ -99,7 +100,42 @@ const formFields = [
     placeholder: "VD: Tiếng Anh IELTS 7.0, Tiếng Nhật N2...",
   },
 ];
-const initialFormData = formFields.reduce((acc, field) => {
+
+// CONFIG: Người dùng chỉnh sửa mảng này để Quyết định trường nào HIỂN THỊ và có BẮT BUỘC NHẬP hay không.
+// Các trường không có trong mảng này (do bị comment) sẽ KHÔNG HIỂN THỊ.
+// Chỉ cần định nghĩa `name` và `required` (nếu muốn bắt buộc).
+const FORM_DISPLAY_AND_VALIDATION_CONFIG = [
+  // { name: "fullName", required: false }, // Comment để ẩn Họ và tên
+  // { name: "personalEmail", required: false }, // Comment để ẩn Email cá nhân
+  // { name: "schoolEmail", required: false }, // Comment để ẩn Email trường
+  // { name: "studentId", required: false }, // Comment để ẩn Mã số sinh viên
+  { name: "course", required: false },
+  // { name: "school", required: true }, // Ví dụ: Trường/Viện là bắt buộc nếu hiển thị
+  { name: "major", required: true }, // Ví dụ: Chuyên ngành là bắt buộc nếu hiển thị
+  // { name: "class", required: false }, // Comment để ẩn Lớp
+  { name: "techSkills", required: true }, // Ví dụ: Kỹ năng chuyên môn là bắt buộc nếu hiển thị
+  { name: "softSkills", required: false },
+  { name: "careerGoals", required: true }, // Ví dụ: Định hướng là bắt buộc nếu hiển thị
+  { name: "achievements", required: false },
+  { name: "languageSkills", required: false },
+];
+
+// Tạo danh sách các trường sẽ được hiển thị trên UI và dùng cho logic validation
+// Nó kết hợp thông tin từ ALL_FIELD_DEFINITIONS và FORM_DISPLAY_AND_VALIDATION_CONFIG
+const displayedFormFields = FORM_DISPLAY_AND_VALIDATION_CONFIG.map(
+  (configField) => {
+    const fullDefinition = ALL_FIELD_DEFINITIONS.find(
+      (def) => def.name === configField.name
+    );
+    return {
+      ...fullDefinition, // Lấy label, type, placeholder từ master list
+      required: configField.required || false, // Lấy `required` từ config, mặc định là false
+    };
+  }
+).filter((field) => field); // Lọc bỏ những field không tìm thấy trong master list (nếu có lỗi gõ tên)
+
+// Khởi tạo formData với tất cả các keys từ ALL_FIELD_DEFINITIONS, giá trị mặc định là ""
+const initialFormData = ALL_FIELD_DEFINITIONS.reduce((acc, field) => {
   acc[field.name] = "";
   return acc;
 }, {});
@@ -111,7 +147,6 @@ export default function SuggestionPageLayout() {
   const [suggestionError, setSuggestionError] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // State cho modal chi tiết CLB
   const [selectedClubDataForModal, setSelectedClubDataForModal] =
     useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -121,7 +156,7 @@ export default function SuggestionPageLayout() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    window.scrollTo(0, 0); // Cuộn lên đầu trang khi component mount
+    window.scrollTo(0, 0);
   }, []);
 
   const handleChange = (e) => {
@@ -135,10 +170,11 @@ export default function SuggestionPageLayout() {
     setSuggestionError(null);
     setSuggestions([]);
     setHasSearched(false);
-    setIsDetailModalOpen(false); // Đảm bảo modal chi tiết đóng khi search mới
+    setIsDetailModalOpen(false);
 
-    for (const field of formFields) {
-      if (field.required && !formData[field.name].trim()) {
+    // Kiểm tra các trường bắt buộc CHỈ DỰA TRÊN displayedFormFields
+    for (const field of displayedFormFields) {
+      if (field.required && !formData[field.name]?.trim()) {
         setSuggestionError(
           `Vui lòng điền thông tin cho trường: ${field.label}`
         );
@@ -146,7 +182,10 @@ export default function SuggestionPageLayout() {
         return;
       }
     }
+
     try {
+      // formData sẽ chứa tất cả các keys từ ALL_FIELD_DEFINITIONS,
+      // các trường ẩn hoặc không nhập sẽ có giá trị ""
       const response = await fetch(`${API_BASE_URL}/suggest`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -192,11 +231,11 @@ export default function SuggestionPageLayout() {
         throw new Error("Dữ liệu chi tiết không hợp lệ.");
       }
       setSelectedClubDataForModal(detailedClubData);
-      setIsDetailModalOpen(true); // Mở modal sau khi fetch thành công
+      setIsDetailModalOpen(true);
     } catch (err) {
       console.error("Failed to fetch entity detail for modal:", err);
       setDetailError(err.message || "Không thể tải chi tiết CLB/Lab.");
-      setIsDetailModalOpen(true); // Vẫn mở modal để hiển thị lỗi
+      setIsDetailModalOpen(true);
     } finally {
       setIsLoadingDetail(false);
     }
@@ -208,19 +247,14 @@ export default function SuggestionPageLayout() {
 
   const closeModalAndResetDetail = () => {
     setIsDetailModalOpen(false);
-    // Có thể reset selectedClubDataForModal và detailError ở đây nếu muốn
-    // setTimeout(() => { // Để modal kịp unmount trước khi reset data
-    //   setSelectedClubDataForModal(null);
-    //   setDetailError(null);
-    // }, 300); // Thời gian transition của modal
   };
 
   const resetFormAndResults = () => {
-    setFormData(initialFormData);
+    setFormData(initialFormData); // Reset về giá trị ban đầu với tất cả các key
     setSuggestions([]);
     setSuggestionError(null);
     setHasSearched(false);
-    closeModalAndResetDetail(); // Đóng modal nếu đang mở
+    closeModalAndResetDetail();
   };
 
   return (
@@ -244,13 +278,13 @@ export default function SuggestionPageLayout() {
         nhất.
       </p>
 
-      {/* Form tìm kiếm */}
       <form
         onSubmit={handleSubmitSuggestions}
         className="bg-white shadow-xl rounded-xl p-6 md:p-8 space-y-6 mb-12"
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-          {formFields.map((field) => (
+          {/* Render form dựa trên displayedFormFields */}
+          {displayedFormFields.map((field) => (
             <div
               key={field.name}
               className={field.type === "textarea" ? "md:col-span-2" : ""}
@@ -315,7 +349,6 @@ export default function SuggestionPageLayout() {
         </div>
       </form>
 
-      {/* Kết quả gợi ý */}
       {hasSearched && !isLoadingSuggestions && (
         <div className="mt-12">
           <h3 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
@@ -344,13 +377,13 @@ export default function SuggestionPageLayout() {
                       <p className="text-sm text-gray-600 mt-1.5 pl-5">
                         <span className="font-medium text-gray-700">
                           Lý do:
-                        </span>
+                        </span>{" "}
                         {suggestion.reason}
                       </p>
                     </div>
                     <ExternalLink
                       size={18}
-                      className="text-gray-400 group-hover:text-red-600 transition-colors opacity-50 group-hover:opacity-100 flex-shrink-0" // Thêm flex-shrink-0
+                      className="text-gray-400 group-hover:text-red-600 transition-colors opacity-50 group-hover:opacity-100 flex-shrink-0"
                     />
                   </div>
                 </div>
@@ -367,21 +400,15 @@ export default function SuggestionPageLayout() {
         </div>
       )}
 
-      {/* Modal hiển thị chi tiết CLB */}
       <Dialog
         open={isDetailModalOpen}
         onClose={closeModalAndResetDetail}
         className="relative z-50"
       >
-        {/* Backdrop */}
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-
-        {/* Full-screen scrollable container */}
         <div className="fixed inset-0 w-screen overflow-y-auto">
           <div className="flex min-h-full items-center justify-center p-4">
             <Dialog.Panel className="w-full max-w-5xl rounded-xl bg-gray-100 p-1 shadow-2xl">
-              {" "}
-              {/* Nền modal xám nhạt */}
               {isLoadingDetail && (
                 <div className="flex flex-col items-center justify-center text-center py-20 h-64">
                   <Loader2 className="h-12 w-12 animate-spin text-red-600 mb-4" />
@@ -408,7 +435,7 @@ export default function SuggestionPageLayout() {
               {!isLoadingDetail && !detailError && selectedClubDataForModal && (
                 <ClubLabDetailComponent
                   club={selectedClubDataForModal}
-                  onBackClick={closeModalAndResetDetail} // Nút back trong ClubLabDetail sẽ đóng modal
+                  onBackClick={closeModalAndResetDetail}
                 />
               )}
             </Dialog.Panel>
